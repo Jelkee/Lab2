@@ -1,0 +1,126 @@
+<!DOCTYPE HTML>
+<!-- Index page of the Online Book Store. -->
+
+<html lang=”en”>
+<head>
+<title>Online Book Store</title>
+<link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+</head>
+
+<body onload = 'updateCartCosts();'>
+    <h1>Online Book Store</h1>
+	<div id="wrapper">
+		<div id="query">
+			<p>Which book category are you interested in?</p>
+			<div>
+				<input id="search" type="text" onkeyup="loadBooks(event)" />
+				<input id="autocomplete" type="text" disabled="disabled" /> 
+			</div>
+		</div>
+
+		<div id="cart">
+			<p>Shopping cart</p>
+			<p id="costs">Total costs: €0.0</p>
+			<button onclick="location.href='checkout.html'">Checkout</button>
+		</div>
+	</div>
+
+	<div id="results">
+		<h2>Found items</h2>
+		<div id="items">
+		<p>No items found so far!</p>
+		</div>
+	</div>
+
+
+<script>
+	var myObj = null;
+	function loadBooks(event){
+		
+		if (event.keyCode == 13){
+			var search = document.getElementById("search").value;
+			if (search == "tech")
+			{
+				var url = "http://localhost:8080/onlineStore/rest/tech";
+			}
+			
+			else if (search == "kids")
+			{
+				var url = "http://localhost:8080/onlineStore/rest/kids";
+			}
+			
+			var xmlhttp = new XMLHttpRequest();
+			xmlhttp.onreadystatechange = function() {
+				if (this.readyState == 4 && this.status == 200) {
+					var response = this.responseText;
+					//document.getElementById("items").innerHTML = response;
+					myObj = JSON.parse(response);
+					var table = '<table><tr><th>ItemID</th><th>shortDescription</th><th>longDescription</th><th>Cost</th><th width="150px">Add to your cart</th></tr>';
+					for (i = 0; i < myObj.length; i++){
+						table += '<tr><th>' + myObj[i].itemID + '</th>';
+						table += '<th>' + myObj[i].shortDescription + '</th>';
+						table += '<th>' + myObj[i].longDescription + '</th>';
+						table += '<th>' + myObj[i].cost + '</th>';
+						table += "<th><button id=\"" + myObj[i].itemID + "\" onclick=\"addToCart(myObj[" + i + "])\">Add to cart</button></th></tr>";
+					}			
+
+					table += "</table>"
+					document.getElementById("items").innerHTML = table;
+				}
+			}
+		    xmlhttp.open("GET", url, true);
+		    xmlhttp.send();
+		    
+			
+		}
+	}
+	
+	function addToCart(item){
+		
+		var xmlhttpPost = new XMLHttpRequest();
+		var cartURL = "http://localhost:8080/onlineStore/rest/cart";
+		xmlhttpPost.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+				var response = this.responseText;
+				var myObj2 = JSON.parse(response);
+			
+			}
+		};
+	    xmlhttpPost.open("POST", cartURL, true);
+	    xmlhttpPost.setRequestHeader("Content-type", "application/json");
+	    xmlhttpPost.setRequestHeader("Accept", "application/json");
+	    var itemID = item.itemID;
+	    var shortDescription = item.shortDescription;
+	    var longDescription = item.longDescription;
+	    var cost = item.cost;
+	   
+	    var order = [{item, numItems: 1}];
+	   
+	    xmlhttpPost.send(JSON.stringify(order));
+	    updateCartCosts();
+	    
+	}
+
+	function updateCartCosts(){
+		var xmlhttp = new XMLHttpRequest();
+	    var costURL = "http://localhost:8080/onlineStore/rest/cart/costs";
+	    var responseGet = 0;
+	    
+	    xmlhttp.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+				var responseGet = xmlhttp.responseText;
+		   		var myObj = JSON.parse(responseGet);
+		   		document.getElementById("costs").innerHTML = "Total costs: €" + responseGet;
+			
+			}
+		};
+	    	
+	    xmlhttp.open("GET", costURL, true);
+	    xmlhttp.send();
+	}
+</script>
+
+
+</body>
+</html>

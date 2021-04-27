@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<title>Insert title here</title>
+
+<script>
+var cost = 0.0;
+function getItems(){
+	var xmlhttp = new XMLHttpRequest();
+	var url = "http://localhost:8080/onlineStore/rest/cart";
+	xmlhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			var response = this.responseText;
+			
+			myObj = JSON.parse(response);
+			var table = '<table>'
+			+ '<tr><th>ItemID</th>'
+			+ '<th>shortDescription</th>'
+			+ '<th>longDescription</th>'
+			+ '<th>Cost</th>'
+			+ '<th>Amount</th></tr>';
+			
+			for (i = 0; i < myObj.length; i++){
+			
+				cost += (myObj[i].numItems * myObj[i].item.cost)
+				table += '<tr><th>' + myObj[i].item.itemID + '</th>';
+				table += '<th>' + myObj[i].item.shortDescription + '</th>';
+				table += '<th>' + myObj[i].item.longDescription + '</th>';
+				table += '<th>' + myObj[i].item.cost + '</th>';
+				table += '<th>' + myObj[i].numItems + '</th>';
+				
+			}			
+			table += '<tr><th colspan="3">Total cost: </th>'+
+			'<th colspan="2">' + cost + '</th></tr>'
+
+			table += "</table>"
+			document.getElementById("items").innerHTML = table;
+		}
+	}
+    xmlhttp.open("GET", url, true);
+    xmlhttp.send();
+}
+
+
+function getCost(){
+	var xmlhttp = new XMLHttpRequest();
+    var costURL = "http://localhost:8080/onlineStore/rest/cart/costs";
+    var responseGet = 0;
+    
+    xmlhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			var responseGet = xmlhttp.responseText;
+	   		var myObj = JSON.parse(responseGet);
+	   		cost = responseGet;
+		
+		}
+	};
+    	
+    xmlhttp.open("GET", costURL, true);
+    xmlhttp.send();
+}
+
+</script>
+
+
+</head>
+
+<body onload = 'getItems()'>
+<H1>Cost statements </H1>
+
+	<div id="results">
+		<h2>Bought items</h2>
+		<div id="items">
+		</div>
+	</div>
+
+</body>
+</html>
